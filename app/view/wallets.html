@@ -24,39 +24,66 @@
   <div>Count: {{ count }}</div>
   <button type="button" style="margin-bottom: 30px;" onclick="refreshPage()">REFRESH</button>
   <br>
-  <input type="number" id="increaseAmount" placeholder="Enter amount to deposit">
-  <button onclick="depositMoney()" style="margin-bottom: 30px;">Deposit</button>
+  <input type="number" id="increaseAmount" placeholder="Money to Deposit" >
+  <button onclick="depositMoney('deposit')" style="margin-bottom: 30px;">Deposit</button>
+  <br>
+  <input type="number" id="decreaseAmount" placeholder="Money to Withdraw">
+  <button onclick="depositMoney('withdraw')" style="margin-bottom: 30px;">Withdraw</button>
   <br>
   <table>
     <thead>
       <tr>
-        <th>Status</th>
+        <th>Date</th>
         <th>Balance</th>
+        <th>Status</th>
+        <th>Total</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="data">
       {% for wallet in wallets %}
         <tr>
-          <td>{{ wallet.type }}</td>
-          <td>{{ wallet.balance }}</td>
+          <td class="date">{{wallet.created_at}}</td>
+          <td class ="money">{{ wallet.balance }}</td>
+          <td class="checkStatus">{{ wallet.type }}</td>
+          <td class="checkStatus">{{ wallet.balance_after }}</td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
   <script>
+
+document.addEventListener("DOMContentLoaded", function() {
+  //格式化日期
+  document.querySelectorAll('.date').forEach(function(el) {
+    const rawDate = el.textContent;
+    const date = new Date(rawDate);
+    el.textContent = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+  });
+
+  document.querySelectorAll('tr').forEach(function(row){
+    const status = row.querySelector('.checkStatus');
+    const money = row.querySelector('.money');
+    const date = row.querySelector('.date');
+    if (money){
+      money.style.color = status.textContent === 'deposit' ? 'green' : 'red';
+    }
+  })
+
+});
     refreshPage = () => {
       window.location.href = '/wallets';
     }
 
-    function depositMoney() {
-      const amount = document.getElementById('increaseAmount').value;
+    function depositMoney(status) {
+      const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount'
+      const amount = document.getElementById(id).value;
       if (!amount) {
-        alert("You have to deposit at least 1 dollar!");
+        alert("The amount has to be at least 1 dollar!");
         return;
       }
 
       const csrfToken = document.getElementById('csrfToken').value;
-      const data = { type: 'deposit', balance: amount };
+      const data = { type: status, balance: amount };
 
       fetch('/wallets', {
         method: 'POST',

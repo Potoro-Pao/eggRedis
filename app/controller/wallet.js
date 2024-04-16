@@ -21,6 +21,7 @@ class WalletController extends Controller {
     try {
       const count = await this.getCount(); // 获取计数值
       const wallets = await this.ctx.service.wallet.listAll();
+      console.log('不知道會顯示在哪裡', wallets);
       // this.ctx.body = { success: true, wallets };
       await this.ctx.render('wallets.html', { wallets, count });
     } catch (error) {
@@ -45,7 +46,6 @@ class WalletController extends Controller {
         type,
         balance: balance || 0, // 如果没有提供初始余额，就默认为0
         create_at: new Date(),
-        updated_at: new Date(),
       });
       this.ctx.body = { success: true, wallet: newWallet };
     } catch (error) {

@@ -21,7 +21,6 @@ class WalletService extends Service {
       type,
       balance: initialBalance || 0, // 提供默认值为0，如果没有初始余额传入
       create_at: new Date(),
-      updated_at: new Date(),
     });
     return newWallet;
   }
