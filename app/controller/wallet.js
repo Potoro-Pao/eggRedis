@@ -21,7 +21,6 @@ class WalletController extends Controller {
     try {
       const count = await this.getCount(); // 获取计数值
       const wallets = await this.ctx.service.wallet.listAll();
-      console.log('不知道會顯示在哪裡', wallets);
       // this.ctx.body = { success: true, wallets };
       await this.ctx.render('wallets.html', { wallets, count });
     } catch (error) {
@@ -55,19 +54,19 @@ class WalletController extends Controller {
 
   // 存款操作
 
-  async deposit() {
-    const count = await this.getCount();
-    const { amount } = this.ctx.request.body;
-    const walletId = count + 1;
+  // async deposit() {
+  //   const count = await this.getCount();
+  //   const { amount } = this.ctx.request.body;
+  //   const walletId = count + 1;
 
-    try {
-      const wallet = await this.ctx.service.wallet.deposit(walletId, amount);
-      this.ctx.body = { success: true, balance: wallet.balance };
-    } catch (error) {
-      console.error(error);
-      this.ctx.body = { success: false, error: error.message };
-    }
-  }
+  //   try {
+  //     const wallet = await this.ctx.service.wallet.deposit(walletId, amount);
+  //     this.ctx.body = { success: true, balance: wallet.balance };
+  //   } catch (error) {
+  //     console.error(error);
+  //     this.ctx.body = { success: false, error: error.message };
+  //   }
+  // }
 }
 
 module.exports = WalletController;
