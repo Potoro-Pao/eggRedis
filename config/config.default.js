@@ -6,6 +6,15 @@ module.exports = appInfo => {
   // 应用密钥
   config.keys = appInfo.name + '_1712889937342_3151';
 
+  config.redis = {
+    client: {
+      port: 6379, // Redis端口
+      host: '127.0.0.1', // Redis主機
+      password: '', // Redis密碼
+      db: 0, // 使用的數據庫索引
+    },
+  };
+
   // 数据库配置
   config.sequelize = {
     dialect: 'mysql',
