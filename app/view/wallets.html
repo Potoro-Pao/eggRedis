@@ -44,7 +44,7 @@
     </tbody>
   </table>
   <script>
-    function refreshPage() {
+    refreshPage = () => {
       window.location.href = '/wallets';
     }
 
@@ -69,8 +69,7 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          alert('Deposit successful!');
-          console.log(data.wallet);
+          this.refreshPage();
         } else {
           alert('Error during deposit: ' + data.error);
         }
