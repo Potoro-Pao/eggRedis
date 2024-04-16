@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wallet List</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Wallet List</h1>
+  <div>Count: {{ count }}</div>
+  <button type="button" style="margin-bottom: 30px;" onclick="refreshPage()">REFRESH</button>
+  <br>
+  <input type="number" id="increaseAmount" placeholder="Enter amount to deposit">
+  <button onclick="depositMoney()" style="margin-bottom: 30px;">Deposit</button>
+  <br>
+  <input type="number" id="decreaseAmount" placeholder="Enter amount to withdraw">
+  <button onclick="withdrawMoney()" style="margin-bottom: 30px;">Withdraw</button>
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Balance</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for wallet in wallets %}
+        <tr>
+          <td>{{ wallet.type }}</td>
+          <td>{{ wallet.balance }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <script>
+    function refreshPage() {
+      window.location.href = '/wallets';
+    }
+
+    function depositMoney() {
+      const amount = document.getElementById('increaseAmount').value;
+      fetch('/wallets/deposit', { // Assuming '/wallets/deposit' is your deposit endpoint
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ amount: amount })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Deposit successful!');
+          console.log(data.wallet); // Newly created Wallet instance
+          refreshPage(); // Refresh the page to update the wallet list and balance
+        } else {
+          alert('Error during deposit: ' + data.error);
+        }
+      })
+      .catch(error => {
+        alert('Error during deposit');
+        console.error('Error:', error);
+      });
+    }
+
+    function withdrawMoney() {
+      const amount = document.getElementById('decreaseAmount').value;
+      fetch('/wallets/withdraw', { // Assuming '/wallets/withdraw' is your withdrawal endpoint
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ amount: amount })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Withdrawal successful!');
+          console.log(data.wallet); // Newly updated Wallet instance
+          refreshPage(); // Refresh the page to update the wallet list and balance
+        } else {
+          alert('Error during withdrawal: ' + data.error);
+        }
+      })
+      .catch(error => {
+        alert('Error during withdrawal');
+        console.error('Error:', error);
+      });
+    }
+  </script>
+</body>
+</html>

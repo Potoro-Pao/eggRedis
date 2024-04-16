@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wallet List</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <input type="hidden" id="csrfToken" value="{{ ctx.csrf }}">
+
+  <h1>Wallet List</h1>
+  <div>Count: {{ count }}</div>
+  <button type="button" style="margin-bottom: 30px;" onclick="refreshPage()">REFRESH</button>
+  <br>
+  <input type="number" id="increaseAmount" placeholder="Enter amount to deposit">
+  <button onclick="depositMoney()" style="margin-bottom: 30px;">Deposit</button>
+  <br>
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Balance</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for wallet in wallets %}
+        <tr>
+          <td>{{ wallet.type }}</td>
+          <td>{{ wallet.balance }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <script>
+    function refreshPage() {
+      window.location.href = '/wallets';
+    }
+
+    function depositMoney() {
+      const amount = document.getElementById('increaseAmount').value;
+      if (!amount) {
+        alert("You have to deposit at least 1 dollar!");
+        return;
+      }
+
+      const csrfToken = document.getElementById('csrfToken').value;
+      const data = { type: 'deposit', balance: amount };
+
+      fetch('/wallets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken  // 确保头部名正确
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Deposit successful!');
+          console.log(data.wallet);
+        } else {
+          alert('Error during deposit: ' + data.error);
+        }
+      })
+      .catch(error => {
+        alert('Error during deposit');
+        console.error('Error:', error);
+      });
+    }
+  </script>
+</body>
+</html>
