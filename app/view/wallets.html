@@ -25,10 +25,10 @@
   <button type="button" style="margin-bottom: 30px;" onclick="refreshPage()">REFRESH</button>
   <br>
   <input type="number" id="increaseAmount" placeholder="Money to Deposit" >
-  <button onclick="depositMoney('deposit')" style="margin-bottom: 30px;">Deposit</button>
+  <button onclick="updateWallet('deposit')" style="margin-bottom: 30px;">Deposit</button>
   <br>
   <input type="number" id="decreaseAmount" placeholder="Money to Withdraw">
-  <button onclick="depositMoney('withdraw')" style="margin-bottom: 30px;">Withdraw</button>
+  <button onclick="updateWallet('withdraw')" style="margin-bottom: 30px;">Withdraw</button>
   <br>
   <table>
     <thead>
@@ -51,7 +51,6 @@
     </tbody>
   </table>
   <script>
-
 document.addEventListener("DOMContentLoaded", function() {
   //格式化日期
   document.querySelectorAll('.date').forEach(function(el) {
@@ -74,38 +73,62 @@ document.addEventListener("DOMContentLoaded", function() {
       window.location.href = '/wallets';
     }
 
-    function depositMoney(status) {
-      const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount'
-      const amount = document.getElementById(id).value;
-      if (!amount) {
+    function updateWallet(status) {
+    const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount';
+    const amount = document.getElementById(id).value;
+    if (!amount || parseFloat(amount) <= 0) {
         alert("The amount has to be at least 1 dollar!");
         return;
-      }
+    }
 
-      const csrfToken = document.getElementById('csrfToken').value;
-      const data = { type: status, balance: amount };
+    const csrfToken = document.getElementById('csrfToken').value;
+    const transactionData = { type: status, balance: parseFloat(amount) };
+    const balanceData = { balance: parseFloat(amount) };
 
-      fetch('/wallets', {
+    // 定义API端点
+    const transactionEndpoint = '/wallets';  // 假设这是创建交易记录的端点
+    // const balanceEndpoint = status === 'deposit' ? '/wallet/deposit' : '/wallet/withdraw';  // 更新余额的端点
+    const balanceEndpoint = '/wallet/deposit';  // 更新余额的端点
+
+    // 首先创建交易记录
+    fetch(transactionEndpoint, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-csrf-token': csrfToken  // 确保头部名正确
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
         },
-        body: JSON.stringify(data)
-      })
-      .then(response => response.json())
-      .then(data => {
+        body: JSON.stringify(transactionData)
+    })
+    .then(response => response.json())
+    .then(data => {
         if (data.success) {
-          this.refreshPage();
+            // 然后更新余额
+            return fetch(balanceEndpoint, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': csrfToken
+                },
+                body: JSON.stringify(balanceData)
+            });
         } else {
-          alert('Error during deposit: ' + data.error);
+            throw new Error('Error during transaction creation: ' + data.error);
         }
-      })
-      .catch(error => {
-        alert('Error during deposit');
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();  // 刷新页面以显示更新的余额
+        } else {
+            alert('Error during balance update: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error.message || 'Network or server error');
         console.error('Error:', error);
-      });
-    }
+    });
+}
+
   </script>
 </body>
 </html>

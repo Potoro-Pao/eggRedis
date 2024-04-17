@@ -1,6 +1,11 @@
 const Controller = require('egg').Controller;
-
+const { Op } = require('sequelize');
+const Decimal = require('decimal.js');
 class WalletController extends Controller {
+  async query(sql) {
+    const result = await this.app.mysql.query(sql);
+    return result;
+  }
 
   async refresh() {
     try {
@@ -47,6 +52,50 @@ class WalletController extends Controller {
         create_at: new Date(),
       });
       this.ctx.body = { success: true, wallet: newWallet };
+    } catch (error) {
+      this.ctx.body = { success: false, error: error.message };
+    }
+  }
+
+  async deposit() {
+    const id = await this.getCount() || 1;
+    try {
+      const wallet = await this.ctx.model.Wallet.findByPk(id) || 1;
+      if (!wallet) {
+        this.ctx.body = { success: false, error: 'Wallet not found.' };
+        return;
+      }
+      const previousRecord = await this.ctx.model.Wallet.findOne({
+        where: {
+          id: {
+            [Op.lt]: id, // 查找 ID 小于当前 ID 的记录
+          },
+        },
+        order: [[ 'id', 'DESC' ]], // 按 ID 降序排列
+        limit: 1, // 只取一条记录
+      });
+
+
+      let newBalanceAfter;
+
+      if (!previousRecord) {
+        wallet.balance_after = wallet.balance;
+
+      } else {
+        if (wallet.type === 'withdraw') {
+          const prevBalance = previousRecord ? (isNaN(previousRecord.balance_after) ? 0 : previousRecord.balance_after) : 0;
+          newBalanceAfter = prevBalance - parseFloat(wallet.balance);
+        }
+        if (wallet.type === 'deposit') {
+          const prevBalance = previousRecord.balance_after;
+          newBalanceAfter = new Decimal(prevBalance).plus(new Decimal(wallet.balance)).toFixed(2);
+        }
+
+        wallet.balance_after = newBalanceAfter;
+      }
+
+      await wallet.save();
+      this.ctx.body = { success: true, balanceAfter: wallet.balance_after };
     } catch (error) {
       this.ctx.body = { success: false, error: error.message };
     }

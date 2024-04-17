@@ -7,7 +7,9 @@
     "declarations": true
   },
   "dependencies": {
+    "decimal.js": "^10.4.3",
     "egg": "^3.17.5",
+    "egg-redis": "^2.6.0",
     "egg-scripts": "2",
     "egg-sequelize": "^6.0.0",
     "egg-view-nunjucks": "^2.3.0",
