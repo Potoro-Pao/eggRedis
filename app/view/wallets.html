@@ -24,11 +24,11 @@
   <div>Count: {{ count }}</div>
   <button type="button" style="margin-bottom: 30px;" onclick="refreshPage()">REFRESH</button>
   <br>
-  <input type="number" id="increaseAmount" placeholder="Money to Deposit" >
-  <button onclick="updateWallet('deposit')" style="margin-bottom: 30px;">Deposit</button>
-  <br>
-  <input type="number" id="decreaseAmount" placeholder="Money to Withdraw">
-  <button onclick="updateWallet('withdraw')" style="margin-bottom: 30px;">Withdraw</button>
+  <input type="number" id="increaseAmount" placeholder="Money to Deposit" min="0">
+<button onclick="updateWallet('deposit')" style="margin-bottom: 30px;">Deposit</button>
+<br>
+<input type="number" id="decreaseAmount" placeholder="Money to Withdraw" min="0">
+<button onclick="updateWallet('withdraw')" style="margin-bottom: 30px;">Withdraw</button>
   <br>
   <table>
     <thead>
