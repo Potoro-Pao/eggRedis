@@ -5,11 +5,6 @@ module.exports = app => {
 
   // 主页路由
   router.get('/', controller.home.index);
-
-  // 获取单个钱包的详细信息
-  // router.get('/wallet/:walletId', controller.wallet.show);
-
-  // 创建一个新的钱包记录
   router.post('/wallets', controller.wallet.create); // 用于创建钱包，并依赖数据库的 autoIncrement
   router.patch('/wallet/deposit', controller.wallet.deposit); // 用于存款操作
 

@@ -33,16 +33,6 @@ class WalletController extends Controller {
     }
   }
 
-  async show() {
-    const { walletId } = this.ctx.params; // 假设 walletId 从 URL 参数传递
-    try {
-      const wallet = await this.ctx.service.wallet.show(walletId);
-      this.ctx.body = { success: true, wallet };
-    } catch (error) {
-      this.ctx.body = { success: false, error: error.message };
-    }
-  }
-
   async create() {
     const { type, balance } = this.ctx.request.body; // 假设前端传来类型和初始余额
     try {
@@ -51,6 +41,7 @@ class WalletController extends Controller {
         balance: balance || 0, // 如果没有提供初始余额，就默认为0
         create_at: new Date(),
       });
+      this.ctx.app.redis.set(`wallet${newWallet.id}`, balance);
       this.ctx.body = { success: true, wallet: newWallet };
     } catch (error) {
       this.ctx.body = { success: false, error: error.message };

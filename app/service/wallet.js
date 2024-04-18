@@ -7,23 +7,20 @@ class WalletService extends Service {
     return count;
   }
 
+
   async create(type, initialBalance) {
     const newWallet = await this.ctx.model.Wallet.create({
       type,
-      balance: initialBalance || 0, // 提供默认值为0，如果没有初始余额传入
+      balance: initialBalance || 0, // 提供默認值為0,如果沒有初始餘額傳入
       create_at: new Date(),
     });
+
     return newWallet;
   }
 
   async listAll() {
-    // let record = await this.ctx.app.redis.get('record');
-    // if (!record) {
-    //   this.ctx.app.redis.set('record', await this.ctx.model.Wallet.findAll());
-    //   record = await this.ctx.model.Wallet.findAll();
-    // }
-    // return record;
-    return await this.ctx.model.Wallet.findAll();
+    const record = await this.ctx.model.Wallet.findAll();
+    return record;
   }
 }
 
