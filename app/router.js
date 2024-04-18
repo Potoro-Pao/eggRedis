@@ -4,7 +4,7 @@ module.exports = app => {
   const { router, controller } = app;
 
   // 主页路由
-  // router.get('/', controller.home.index);
+  router.get('/', controller.home.index);
 
   // 获取单个钱包的详细信息
   // router.get('/wallet/:walletId', controller.wallet.show);

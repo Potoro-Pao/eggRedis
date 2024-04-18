@@ -22,7 +22,6 @@
 
   <h1>Wallet List</h1>
   <div>Count: {{ count }}</div>
-  <button type="button" style="margin-bottom: 30px;" onclick="refreshPage()">REFRESH</button>
   <br>
   <input type="number" id="increaseAmount" placeholder="Money to Deposit" min="0">
 <button onclick="updateWallet('deposit')" style="margin-bottom: 30px;">Deposit</button>
@@ -51,27 +50,8 @@
     </tbody>
   </table>
   <script>
-document.addEventListener("DOMContentLoaded", function() {
-  //格式化日期
-  document.querySelectorAll('.date').forEach(function(el) {
-    const rawDate = el.textContent;
-    const date = new Date(rawDate);
-    el.textContent = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
-  });
 
-  document.querySelectorAll('tr').forEach(function(row){
-    const status = row.querySelector('.checkStatus');
-    const money = row.querySelector('.money');
-    const date = row.querySelector('.date');
-    if (money){
-      money.style.color = status.textContent === 'deposit' ? 'green' : 'red';
-    }
-  })
-
-});
-    refreshPage = () => {
-      window.location.href = '/wallets';
-    }
+    this.formateForm();
 
     function updateWallet(status) {
     const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount';
@@ -84,8 +64,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const csrfToken = document.getElementById('csrfToken').value;
     const transactionData = { type: status, balance: parseFloat(amount) };
     const balanceData = { balance: parseFloat(amount) };
-
-    // 定义API端点
     const transactionEndpoint = '/wallets';  // 假设这是创建交易记录的端点
     // const balanceEndpoint = status === 'deposit' ? '/wallet/deposit' : '/wallet/withdraw';  // 更新余额的端点
     const balanceEndpoint = '/wallet/deposit';  // 更新余额的端点
@@ -128,6 +106,27 @@ document.addEventListener("DOMContentLoaded", function() {
         console.error('Error:', error);
     });
 }
+
+function formateForm (){
+      document.addEventListener("DOMContentLoaded", function() {
+  //格式化日期
+  document.querySelectorAll('.date').forEach(function(el) {
+    const rawDate = el.textContent;
+    const date = new Date(rawDate);
+    el.textContent = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+  });
+
+  document.querySelectorAll('tr').forEach(function(row){
+    const status = row.querySelector('.checkStatus');
+    const money = row.querySelector('.money');
+    const date = row.querySelector('.date');
+    if (money){
+      money.style.color = status.textContent === 'deposit' ? 'green' : 'red';
+    }
+  })
+
+});
+    }
 
   </script>
 </body>

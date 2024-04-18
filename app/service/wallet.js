@@ -3,9 +3,6 @@ const Service = require('egg').Service;
 class WalletService extends Service {
 
   async countAllWallets() {
-    this.ctx.app.redis.set('oo', 'spinich');
-    // const a = await this.ctx.app.redis.get('oo');
-    // console.log('vvvvvvvvvvvvvvvvv', a);
     const count = await this.ctx.model.Wallet.count();
     return count;
   }
@@ -20,7 +17,13 @@ class WalletService extends Service {
   }
 
   async listAll() {
-    return this.ctx.model.Wallet.findAll();
+    // let record = await this.ctx.app.redis.get('record');
+    // if (!record) {
+    //   this.ctx.app.redis.set('record', await this.ctx.model.Wallet.findAll());
+    //   record = await this.ctx.model.Wallet.findAll();
+    // }
+    // return record;
+    return await this.ctx.model.Wallet.findAll();
   }
 }
 
