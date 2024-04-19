@@ -54,57 +54,39 @@
     this.formateForm();
 
     function updateWallet(status) {
-    const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount';
-    const amount = document.getElementById(id).value;
-    if (!amount || parseFloat(amount) <= 0) {
-        alert("The amount has to be at least 1 dollar!");
-        return;
+  const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount';
+  const amount = document.getElementById(id).value;
+  if (!amount || parseFloat(amount) <= 0) {
+    alert("The amount has to be at least 1 dollar!");
+    return;
+  }
+
+  const csrfToken = document.getElementById('csrfToken').value;
+  const transactionData = { type: status, balance: parseFloat(amount) };
+  const transactionEndpoint = '/wallets';
+
+  fetch(transactionEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-csrf-token': csrfToken
+    },
+    body: JSON.stringify(transactionData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Transaction created successfully');
+      // 可選: 在此處添加一些用戶交互反饋
+    } else {
+      console.error('Error creating transaction:', data.error);
+      alert('Error creating transaction: ' + data.error);
     }
-
-    const csrfToken = document.getElementById('csrfToken').value;
-    const transactionData = { type: status, balance: parseFloat(amount) };
-    const balanceData = { balance: parseFloat(amount) };
-    const transactionEndpoint = '/wallets';  // 假设这是创建交易记录的端点
-    // const balanceEndpoint = status === 'deposit' ? '/wallet/deposit' : '/wallet/withdraw';  // 更新余额的端点
-    const balanceEndpoint = '/wallet/transaction';  // 更新余额的端点
-
-    // 首先创建交易记录3
-    fetch(transactionEndpoint, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-csrf-token': csrfToken
-        },
-        body: JSON.stringify(transactionData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // 然后更新余额
-            return fetch(balanceEndpoint, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-csrf-token': csrfToken
-                },
-                body: JSON.stringify(balanceData)
-            });
-        } else {
-            throw new Error('Error during transaction creation: ' + data.error);
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.reload();  // 刷新页面以显示更新的余额
-        } else {
-            alert('Error during balance update: ' + data.error);
-        }
-    })
-    .catch(error => {
-        alert('Error: ' + error.message || 'Network or server error');
-        console.error('Error:', error);
-    });
+  })
+  .catch(error => {
+    console.error('Error creating transaction:', error);
+    alert('Error creating transaction: ' + error.message);
+  });
 }
 
 function formateForm (){

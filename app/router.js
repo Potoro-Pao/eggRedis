@@ -6,7 +6,7 @@ module.exports = app => {
   // 主页路由
   router.get('/', controller.home.index);
   router.post('/wallets', controller.wallet.create); // 用于创建钱包，并依赖数据库的 autoIncrement
-  router.patch('/wallet/transaction', controller.wallet.processTransaction); // 用于存款操作
+  // router.patch('/wallet/transaction', controller.wallet.processTransaction); // 用于存款操作
 
   // 获取所有钱包的列表
   router.get('/wallets', controller.wallet.index);

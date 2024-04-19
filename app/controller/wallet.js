@@ -1,6 +1,8 @@
 const Controller = require('egg').Controller;
 // const { Op } = require('sequelize');
-const Decimal = require('decimal.js');
+// const Decimal = require('decimal.js');
+const { v4: uuidv4 } = require('uuid');
+
 class WalletController extends Controller {
   async refresh() {
     try {
@@ -33,15 +35,15 @@ class WalletController extends Controller {
   }
 
   async create() {
-    const { type, balance } = this.ctx.request.body; // 假设前端传来类型和初始余额
+    const { type, balance } = this.ctx.request.body;
     try {
-      const newWallet = await this.ctx.model.Wallet.create({
-        type,
-        balance: balance || 0, // 如果没有提供初始余额，就默认为0
-        create_at: new Date(),
-      });
-      this.ctx.app.redis.set(`wallet${newWallet.id}`, JSON.stringify({ type, balance }));
-      this.ctx.body = { success: true, wallet: newWallet };
+      // 生成唯一的交易 ID
+      const transactionId = uuidv4();
+
+      // 將交易資料寫入 Redis
+      await this.ctx.app.redis.setex(`transaction:${transactionId}`, 3600, JSON.stringify({ type, balance }));
+      await this.processTransaction();
+      this.ctx.body = { success: true, transactionId };
     } catch (error) {
       this.ctx.body = { success: false, error: error.message };
     }
@@ -57,28 +59,69 @@ class WalletController extends Controller {
 
   // 加入資料庫的版本
   async processTransaction() {
-    const ids = await this.findRedisWalletKeys();
+    // 獲取所有未處理的交易 ID
+    const transactionIds = await this.ctx.app.redis.keys('transaction:*');
 
-    try {
-      let currentBalance = 0;
-      for (const i of ids) {
-        const redisData = await this.ctx.app.redis.get(i);
-        const balanceFromRedis = JSON.parse(redisData).balance;
-        const redisType = JSON.parse(redisData).type;
-        currentBalance = redisType === 'deposit' ? currentBalance += balanceFromRedis : currentBalance -= balanceFromRedis;
+    // 處理一批次交易
+    const batchSize = 100;
+    const processedIds = [];
+
+    for (let i = 0; i < transactionIds.length; i += batchSize) {
+      const batch = transactionIds.slice(i, i + batchSize);
+
+      try {
+        // 處理這一批次交易
+        await this.processBatch(batch);
+
+        // 標記這一批次交易為已處理
+        processedIds.push(...batch);
+      } catch (error) {
+        this.ctx.logger.error(`Error processing batch: ${error.message}`);
       }
-      // 更新餘額
-      await this.ctx.app.redis.set('balanceAfter', currentBalance);
-      const newBalanceAfter = new Decimal(currentBalance).toFixed(2);
-
-      // 將total（balanceAfter)存到數據庫
-      this.syncToDatabase(ids.length, newBalanceAfter);
-
-      this.ctx.body = { success: true, balanceAfter: newBalanceAfter };
-    } catch (error) {
-      this.ctx.body = { success: false, error: error.message };
     }
+
+    // 從 Redis 中刪除已處理的交易
+    const multi = this.ctx.app.redis.multi();
+    for (const id of processedIds) {
+      multi.del(id);
+    }
+    await multi.exec();
   }
+
+  async processBatch(transactionIds) {
+    const transactions = [];
+
+    for (const id of transactionIds) {
+      const transaction = await this.ctx.app.redis.get(id);
+      const { type, balance } = JSON.parse(transaction);
+
+      transactions.push({
+        type,
+        balance,
+        balance_after: 0, // 初始化為 0,後續會更新
+      });
+    }
+
+    // 批量創建交易記錄
+    const wallets = await this.ctx.model.Wallet.bulkCreate(transactions);
+    console.log('青江菜空心菜', wallets);
+
+    // 更新餘額
+    let totalBalance = 0;
+    for (const wallet of wallets) {
+      if (wallet.type === 'deposit') {
+        totalBalance += wallet.balance;
+      } else {
+        totalBalance -= wallet.balance;
+      }
+
+      wallet.balance_after = totalBalance;
+      await wallet.save();
+    }
+
+  }
+
+
   // 只與資料庫互動的版本
   // async processTransaction() {
   //   const test = await this.findRedisWalletKeys();
