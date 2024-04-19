@@ -1,10 +1,15 @@
 module.exports = app => {
-  const { STRING, DECIMAL, ENUM } = app.Sequelize;
+  const { STRING, DECIMAL, ENUM, INTEGER } = app.Sequelize;
 
   const Wallet = app.model.define('wallet', {
+    numeric_id: {
+      type: INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     id: {
       type: STRING(255),
-      primaryKey: true,
+      primaryKey: false,
       autoIncrement: false,
     },
     type: {
