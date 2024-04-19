@@ -2,11 +2,6 @@ const Controller = require('egg').Controller;
 // const { Op } = require('sequelize');
 const Decimal = require('decimal.js');
 class WalletController extends Controller {
-  async query(sql) {
-    const result = await this.app.mysql.query(sql);
-    return result;
-  }
-
   async refresh() {
     try {
       const count = await this.getCount();
@@ -61,7 +56,7 @@ class WalletController extends Controller {
     }
   }
 
-  async deposit() {
+  async processTransaction() {
     const ids = await this.findRedisWalletKeys();
 
     try {
@@ -77,7 +72,6 @@ class WalletController extends Controller {
       }
 
       if (ids.length === 0) {
-        // 如果 Redis 中没有，从数据库加载，并设置到 Redis
         const wallet = await this.ctx.model.Wallet.findByPk(ids.length);
         if (!wallet) {
           this.ctx.body = { success: false, error: 'Wallet not found.' };
