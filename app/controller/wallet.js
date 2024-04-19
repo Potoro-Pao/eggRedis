@@ -22,10 +22,9 @@ class WalletController extends Controller {
     const count = await this.service.wallet.countAllWallets();
     return count;
   }
-  // 显示钱包信息
   async index() {
     try {
-      const count = await this.getCount(); // 获取计数值
+      const count = await this.getCount();
       const wallets = await this.ctx.service.wallet.listAll();
       await this.ctx.render('wallets.html', { wallets, count });
     } catch (error) {
@@ -56,6 +55,7 @@ class WalletController extends Controller {
     }
   }
 
+  // 加入資料庫的版本
   async processTransaction() {
     const ids = await this.findRedisWalletKeys();
 
@@ -65,26 +65,13 @@ class WalletController extends Controller {
         const redisData = await this.ctx.app.redis.get(i);
         const balanceFromRedis = JSON.parse(redisData).balance;
         const redisType = JSON.parse(redisData).type;
-
         currentBalance = redisType === 'deposit' ? currentBalance += balanceFromRedis : currentBalance -= balanceFromRedis;
-
-        // 加總所有的balance
       }
-
-      if (ids.length === 0) {
-        const wallet = await this.ctx.model.Wallet.findByPk(ids.length);
-        if (!wallet) {
-          this.ctx.body = { success: false, error: 'Wallet not found.' };
-          return;
-        }
-        await this.ctx.app.redis.set(ids[0], currentBalance);
-      }
-
-      // 更新余额
+      // 更新餘額
       await this.ctx.app.redis.set('balanceAfter', currentBalance);
       const newBalanceAfter = new Decimal(currentBalance).toFixed(2);
 
-      // 异步同步到数据库
+      // 將total（balanceAfter)存到數據庫
       this.syncToDatabase(ids.length, newBalanceAfter);
 
       this.ctx.body = { success: true, balanceAfter: newBalanceAfter };
@@ -92,8 +79,8 @@ class WalletController extends Controller {
       this.ctx.body = { success: false, error: error.message };
     }
   }
-
-  // async deposit() {
+  // 只與資料庫互動的版本
+  // async processTransaction() {
   //   const test = await this.findRedisWalletKeys();
   //   const id = await this.getCount() || 1;
   //   for (const i of test) {
