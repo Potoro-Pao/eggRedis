@@ -20,7 +20,7 @@ class WalletService extends Service {
 
   async listAll() {
     const record = await this.ctx.model.Wallet.findAll({
-      order: [[ 'created_at', 'DESC' ]],
+      order: [[ 'created_at', 'ASC' ]],
     });
     return record;
   }
