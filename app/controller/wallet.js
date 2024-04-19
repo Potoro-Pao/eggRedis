@@ -16,9 +16,7 @@ class WalletController extends Controller {
   async index() {
     try {
       const count = await this.getCount();
-      const wallets = await this.ctx.service.wallet.listAll({
-        order: [[ 'created_at', 'DESC' ]], // 按创建时间降序排序
-      });
+      const wallets = await this.ctx.service.wallet.listAll();
 
       await this.ctx.render('wallets.html', { wallets, count });
     } catch (error) {
