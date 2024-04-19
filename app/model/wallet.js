@@ -1,11 +1,11 @@
 module.exports = app => {
-  const { INTEGER, DECIMAL, ENUM } = app.Sequelize;
+  const { STRING, DECIMAL, ENUM } = app.Sequelize;
 
   const Wallet = app.model.define('wallet', {
     id: {
-      type: INTEGER,
+      type: STRING(255),
       primaryKey: true,
-      autoIncrement: true,
+      autoIncrement: false,
     },
     type: {
       type: ENUM('deposit', 'withdraw'),

@@ -77,7 +77,7 @@
   .then(data => {
     if (data.success) {
       console.log('Transaction created successfully');
-      // 可選: 在此處添加一些用戶交互反饋
+      window.location.reload();
     } else {
       console.error('Error creating transaction:', data.error);
       alert('Error creating transaction: ' + data.error);
