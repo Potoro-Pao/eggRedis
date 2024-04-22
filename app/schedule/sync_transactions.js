@@ -1,41 +1,30 @@
 // app/schedule/sync_transactions.js
 module.exports = {
   schedule: {
-    interval: '1m', // Run this task every 5 minutes
-    type: 'all', // 'all' means this task will be executed on all workers
+    interval: '1m', // This task runs every minute
+    type: 'all', // This task will be executed on all workers
   },
   async task(ctx) {
-    // Your task code here, e.g., sync data from Redis to MySQL
     console.log('Running scheduled task to sync transactions.');
+    const batchSize = 1000; // Define the maximum number of transactions per batch
     const transactions = [];
     let transactionJson;
 
-    // Assuming you are popping transactions from a Redis list
+    // Pop transactions from a Redis list
+    console.log(`Starting batch processing. Initial queue size: ${await ctx.app.redis.llen('transactions')}`);
     while ((transactionJson = await ctx.app.redis.lpop('transactions'))) {
+      console.log(`Starting batch processing. Initial queue size: ${await ctx.app.redis.llen('transactions')}`);
       transactions.push(JSON.parse(transactionJson));
+      if (transactions.length >= batchSize) {
+        await ctx.model.Wallet.bulkCreate(transactions);
+        console.log(`Processed a batch of ${transactions.length} transactions.`);
+        transactions.length = 0; // Clear the array after processing
+      }
     }
-
     if (transactions.length > 0) {
       await ctx.model.Wallet.bulkCreate(transactions);
+      console.log(`Processed remaining batch of ${transactions.length} transactions.`);
     }
+
   },
 };
-
-
-// app/schedule/sync_transactions.js
-// module.exports = {
-//     schedule: {
-//       interval: '5m', // 5 分钟同步一次
-//       type: 'all', // 所有的 worker 都需要执行
-//     },
-//     async task(ctx) {
-//       const transactions = [];
-//       const transactionJson = await ctx.app.redis.rpop('transactions');
-//       while (transactionJson) {
-//         transactions.push(JSON.parse(transactionJson));
-//       }
-
-//       // 批量插入数据库
-//       await ctx.model.Transaction.bulkCreate(transactions);
-//     },
-//   };

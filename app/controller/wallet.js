@@ -18,13 +18,11 @@ class WalletController extends Controller {
       const transactionId = uuidv4();
       const balanceKey = 'wallet:balance';
 
-      // Get current balance
-      const currentBalance = parseFloat(await this.ctx.app.redis.get(balanceKey)) || 0;
+      // 直接使用 Redis 的 INCRBY/DECRBY 进行原子余额更新
+      const amount = type === 'deposit' ? balance : -balance;
+      const updatedBalance = await this.ctx.app.redis.incrbyfloat(balanceKey, amount);
 
-      // Calculate new balance based on transaction type
-      const updatedBalance = type === 'deposit' ? currentBalance + balance : currentBalance - balance;
-
-      // Prepare transaction data
+      // 准备交易数据
       const transactionData = {
         id: transactionId,
         type,
@@ -36,18 +34,15 @@ class WalletController extends Controller {
       // Log the transaction data for debugging
       console.log('Transaction Data:', transactionData);
 
-      // Execute Redis commands using MULTI/EXEC for transactional integrity
-      const multi = this.ctx.app.redis.multi();
-      multi.set(balanceKey, updatedBalance.toString());
-      multi.lpush('transactions', JSON.stringify(transactionData));
-      await multi.exec(); // Execute all commands atomically
+      // 将交易数据添加到 Redis 列表
+      await this.ctx.app.redis.rpush('transactions', JSON.stringify(transactionData));
 
       this.ctx.body = { success: true, transactionId, currentBalance: updatedBalance };
     } catch (error) {
+      console.error('Failed to create transaction:', error);
       this.ctx.body = { success: false, error: error.message };
     }
   }
-
 
   async getCount() {
     return this.ctx.model.Wallet.count();

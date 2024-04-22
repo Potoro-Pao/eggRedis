@@ -31,6 +31,8 @@
 <br>
 <input type="number" id="decreaseAmount" placeholder="Money to Withdraw" min="0">
 <button onclick="updateWallet('withdraw')" style="margin-bottom: 30px;">Withdraw</button>
+<button onclick="simulatePost()" style="margin-bottom: 30px;">simulatePost1500</button>
+
   <br>
   <table>
     <thead>
@@ -56,9 +58,14 @@
 
     this.formateForm();
 
+    function simulatePost(){
+      for (let i = 0 ; i < 1354; i ++){
+        this.updateWallet('deposit')
+      }
+    }
     function updateWallet(status) {
   const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount';
-  const amount = document.getElementById(id).value;
+  const amount = 1; //document.getElementById(id).value
   if (!amount || parseFloat(amount) <= 0) {
     alert("The amount has to be at least 1 dollar!");
     return;
