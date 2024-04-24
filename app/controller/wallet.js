@@ -1,6 +1,6 @@
 const Controller = require('egg').Controller;
 // const { v4: uuidv4 } = require('uuid');
-let score = 0;
+// let score = 0;
 class WalletController extends Controller {
   // 获取钱包列表和数量的方法
   async index() {
@@ -36,7 +36,7 @@ class WalletController extends Controller {
       // console.log('Transaction Data:', transactionData);
 
       const transactionString = JSON.stringify(transactionData);
-      score++;
+      const score = new Date().getTime();
 
       // 使用 ZADD 命令配合 NX 选项添加交易数据到有序集合
       const added = await this.ctx.app.redis.zadd(transactionsKey, 'NX', score, transactionString);
