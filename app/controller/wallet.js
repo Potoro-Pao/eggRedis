@@ -13,51 +13,58 @@ class WalletController extends Controller {
     }
   }
 
+  async generateUniqueId() {
+    const uniqueIDsKey = 'unique_transaction_ids';
+    let newId;
+    let isUnique = 0;
+
+    while (isUnique === 0) {
+      const randomPart = Math.random().toString(36).substring(2, 15);
+      const timestamp = Date.now().toString();
+      newId = `${timestamp}-${randomPart}`;
+
+      // 尝试将生成的 newId 添加到 SET 中，如果已存在，则返回 0
+      isUnique = await this.ctx.app.redis.sadd(uniqueIDsKey, newId);
+    }
+
+    return newId;
+  }
+
+
   async create() {
     const { type, balance } = this.ctx.request.body;
     try {
-        const newId = uuidv4();
-        const multi = this.ctx.app.redis.multi();
+      const newId = await this.generateUniqueId()
+      console.log(newId)
+      const balanceKey = 'wallet:balance';
+      const transactionsKey = 'transactions';
 
-        // 新增交易時就會看他是否為唯一的key
-        multi.sadd('unique_transaction_ids', newId);
+      // 更新餘額
+      let updatedBalance;
+      if (type === 'deposit') {
+        updatedBalance = await this.ctx.app.redis.incrby(balanceKey, parseInt(balance));
+      } else {
+        updatedBalance = await this.ctx.app.redis.decrby(balanceKey, parseInt(balance));
+      }
 
-        const balanceKey = 'wallet:balance';
+      // 構建交易數據
+      const transactionData = {
+        id: newId,
+        type,
+        balance: parseInt(balance),
+        balance_after: updatedBalance,
+        create_at: new Date().toISOString(),
+      };
 
-        // 直接使用incrby更新
-        if (type === 'deposit') {
-            multi.incrby(balanceKey, parseInt(balance));  // 增加余额
-        } else {
-            multi.decrby(balanceKey, parseInt(balance));  // 减少余额
-        }
+      // 存儲交易數據
+      await this.ctx.app.redis.rpush(transactionsKey, JSON.stringify(transactionData));
 
-        // 一次執行上述列隊
-        const results = await multi.exec();
-        console.log("results", results)
-        const isUnique = results[0][1];  // 上述的的列隊會存在一個陣列裡面['null', 1]代表執行成功1代表示sadd他成功的加入當前這筆交易的id
-        if (isUnique === 0) {
-            throw new Error('Duplicate transaction ID generated');
-        }
-
-        const updatedBalance = results[1][1];  // 上述的的列隊會存在一個陣列裡面['null', 計算結果]把計算結果寫入updateBalance準備寫入資料庫
-
-        const transactionData = {
-            id: newId,
-            type,
-            balance: parseInt(balance),
-            balance_after: updatedBalance,
-            create_at: new Date().toISOString(),
-        };
-
-        // 將資料從右邊推入key值將會在schedule用lpop取出
-        await this.ctx.app.redis.rpush('transactions', JSON.stringify(transactionData));
-
-        this.ctx.body = { success: true, transactionId: newId };
+      this.ctx.body = { success: true, transactionId: newId };
     } catch (error) {
-        console.error('Transaction failed', error);
-        this.ctx.body = { success: false, error: error.message };
+      console.error('Transaction failed', error);
+      this.ctx.body = { success: false, error: error.message };
     }
-}
+  }
 
   // async create() {
   //   const { type, balance } = this.ctx.request.body;
