@@ -31,7 +31,7 @@
 <br>
 <input type="number" id="decreaseAmount" placeholder="Money to Withdraw" min="0">
 <button onclick="updateWallet('withdraw')" style="margin-bottom: 30px;">Withdraw</button>
-<button onclick="simulatePost()" style="margin-bottom: 30px;">simulatePost1500</button>
+<button onclick="simulatePost()" style="margin-bottom: 30px;">simulatePost1200</button>
 
   <br>
   <table>
@@ -59,7 +59,7 @@
     this.formateForm();
 
     function simulatePost(){
-      for (let i = 0 ; i < 1354; i ++){
+      for (let i = 0 ; i < 1200; i ++){
         this.updateWallet('deposit')
       }
     }
@@ -90,12 +90,12 @@
       window.location.reload();
     } else {
       console.error('Error creating transaction:', data.error);
-      alert('Error creating transaction: ' + data.error);
+      alert('Error creating transaction1: ' + data.error);
     }
   })
   .catch(error => {
     console.error('Error creating transaction:', error);
-    alert('Error creating transaction: ' + error.message);
+    alert('Error creating transaction2: ' + error.message);
   });
 }
 
