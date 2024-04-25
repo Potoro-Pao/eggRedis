@@ -76,14 +76,15 @@
     function updateWallet(status) {
   const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount';
 
-  const amount = 1 ; // document.getElementById(id).value
+  const amount = 1; // document.getElementById(id).value;
+  console.log(amount)
   if (!amount || parseFloat(amount) <= 0) {
     alert("The amount has to be at least 1 dollar!");
     return;
   }
 
   const csrfToken = document.getElementById('csrfToken').value;
-  const transactionData = { type: status, balance: parseFloat(amount) };
+  const transactionData = { type: status, amount: parseInt(amount) };
   const transactionEndpoint = '/wallets';
 
   fetch(transactionEndpoint, {

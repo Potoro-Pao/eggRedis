@@ -14,14 +14,12 @@ class WalletController extends Controller {
 
   async generateUniqueId() {
     const uniqueIDsCounterKey = 'unique_transaction_counter';
-    const randomPart = await this.ctx.app.redis.incr(uniqueIDsCounterKey);
-    const timestamp = Date.now().toString();
-    const newId = `${timestamp}-${randomPart}`;
-    return newId;
+    const uniqueId = await this.ctx.app.redis.incr(uniqueIDsCounterKey);
+    return uniqueId;
   }
 
   async create() {
-    const { type, balance } = this.ctx.request.body;
+    const { type, amount } = this.ctx.request.body;
     try {
       const newId = await this.generateUniqueId();
       const balanceKey = 'wallet:balance';
@@ -29,15 +27,15 @@ class WalletController extends Controller {
 
       let updatedBalance;
       if (type === 'deposit') {
-        updatedBalance = await this.ctx.app.redis.incrby(balanceKey, parseInt(balance));
+        updatedBalance = await this.ctx.app.redis.incrby(balanceKey, parseInt(amount));
       } else {
-        updatedBalance = await this.ctx.app.redis.decrby(balanceKey, parseInt(balance));
+        updatedBalance = await this.ctx.app.redis.decrby(balanceKey, parseInt(amount));
       }
 
       const transactionData = {
         id: newId,
         type,
-        balance: parseInt(balance),
+        balance: parseInt(amount),
         balance_after: updatedBalance,
         create_at: new Date().toISOString(),
       };
