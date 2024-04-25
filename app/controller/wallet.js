@@ -1,5 +1,4 @@
 const Controller = require('egg').Controller;
-const { v4: uuidv4 } = require('uuid');
 
 class WalletController extends Controller {
   async index() {
@@ -22,8 +21,6 @@ class WalletController extends Controller {
       const randomPart = Math.random().toString(36).substring(2, 15);
       const timestamp = Date.now().toString();
       newId = `${timestamp}-${randomPart}`;
-
-      // 尝试将生成的 newId 添加到 SET 中，如果已存在，则返回 0
       isUnique = await this.ctx.app.redis.sadd(uniqueIDsKey, newId);
     }
 
@@ -34,8 +31,8 @@ class WalletController extends Controller {
   async create() {
     const { type, balance } = this.ctx.request.body;
     try {
-      const newId = await this.generateUniqueId()
-      console.log(newId)
+      const newId = await this.generateUniqueId();
+      console.log(newId);
       const balanceKey = 'wallet:balance';
       const transactionsKey = 'transactions';
 
@@ -65,6 +62,8 @@ class WalletController extends Controller {
       this.ctx.body = { success: false, error: error.message };
     }
   }
+
+  // 示例：使用 Egg.js 触发 Redis 的 BGSAVE 命令
 
   // async create() {
   //   const { type, balance } = this.ctx.request.body;
