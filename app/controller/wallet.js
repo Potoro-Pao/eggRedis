@@ -61,61 +61,6 @@ class WalletController extends Controller {
     }
   }
 
-  // 示例：使用 Egg.js 触发 Redis 的 BGSAVE 命令
-
-  // async create() {
-  //   const { type, balance } = this.ctx.request.body;
-  //   try {
-  //     const balanceKey = 'wallet:balance';
-  //     const transactionsKey = 'transactions';
-  //     const transactionIdKey = 'transaction_id';
-
-  //     // Redis 事务开始
-  //     const multi = this.ctx.app.redis.multi();
-
-  //     // 获取当前钱包余额
-  //     const currentBalance = parseFloat(await this.ctx.app.redis.get(balanceKey) || '0');
-
-  //     // 计算更新后的余额
-  //     const amount = type === 'deposit' ? parseFloat(balance) : -parseFloat(balance);
-  //     const updatedBalance = currentBalance + amount;
-
-  //     // 队列余额更新
-  //     multi.set(balanceKey, updatedBalance.toString());
-
-  //     // 生成唯一的交易ID
-  //     multi.incr(transactionIdKey);
-
-  //     const [newTransactionId] = await multi.exec();
-
-  //     const transactionData = {
-  //       id: newTransactionId,
-  //       type,
-  //       balance: parseFloat(balance),
-  //       balance_after: updatedBalance,
-  //       created_at: new Date().toISOString(),
-  //     };
-
-  //     // 使用Hash存储交易数据
-  //     await this.ctx.app.redis.hset(transactionsKey, newTransactionId, JSON.stringify(transactionData));
-
-  //     // 使用List存储交易的顺序
-  //     await this.ctx.app.redis.rpush('transactions', newTransactionId);
-
-  //     this.ctx.body = {
-  //       success: true,
-  //       transactionId: newTransactionId,
-  //       currentBalance: updatedBalance,
-  //     };
-  //   } catch (error) {
-  //     console.error('Failed to create transaction:', error);
-  //     this.ctx.body = {
-  //       success: false,
-  //       error: error.message,
-  //     };
-  //   }
-  // }
-
   async getCount() {
     return this.ctx.model.Wallet.count();
   }

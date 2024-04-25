@@ -14,7 +14,7 @@ module.exports = appInfo => {
       db: 0, // 使用的數據庫編號
     },
     agent: true, // 是否啟用Agent
-    dumpPath: '/Users/angelpao/dump.rdb', // Redis的dump文件路徑
+    dumpPath: '/Users/angelpao/dumb.rdb', // Redis的dump文件路徑
   };
 
   // config.redis = {
