@@ -10,6 +10,7 @@ module.exports = app => {
 
   // 获取所有钱包的列表
   router.get('/wallets', controller.wallet.index);
+
   // 目前沒有要用
   // 对现有钱包进行存款操作
   // router.patch('/wallets/:walletId', controller.wallet.deposit); // 使用PATCH表示资源部分更新

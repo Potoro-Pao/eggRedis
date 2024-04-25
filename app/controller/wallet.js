@@ -4,9 +4,9 @@ class WalletController extends Controller {
   async index() {
     try {
       const count = await this.getCount();
-      const total = await this.getTotal();
+      const balance = await this.getTotal();
       const wallets = await this.ctx.service.wallet.listAll();
-      await this.ctx.render('wallets.html', { wallets, total, count });
+      await this.ctx.render('wallets.html', { wallets, count, balance });
     } catch (error) {
       this.ctx.body = { success: false, error: error.message };
     }
@@ -24,7 +24,7 @@ class WalletController extends Controller {
       const newId = await this.generateUniqueId();
       const balanceKey = 'wallet:balance';
       const transactionsKey = 'transactions';
-
+      const balanceBackUpKey = 'backUpBalances';
       let updatedBalance;
       if (type === 'deposit') {
         updatedBalance = await this.ctx.app.redis.incrby(balanceKey, parseInt(amount));
@@ -40,9 +40,13 @@ class WalletController extends Controller {
         create_at: new Date().toISOString(),
       };
 
+      const backUpBalanceData = {
+        balance: updatedBalance,
+      };
+
       // 存儲交易數據
       await this.ctx.app.redis.rpush(transactionsKey, JSON.stringify(transactionData));
-
+      await this.ctx.app.redis.rpush(balanceBackUpKey, JSON.stringify(backUpBalanceData));
       this.ctx.body = { success: true, transactionId: newId };
     } catch (error) {
       console.error('Transaction failed', error);
@@ -54,10 +58,12 @@ class WalletController extends Controller {
     return this.ctx.model.Wallet.count();
   }
   async getTotal() {
-    const wallets = await this.ctx.model.Wallet.findAll();
-    const lastWallet = wallets.at(-1);
-    return lastWallet ? lastWallet.balance_after : 0;
+    const lastWallet = await this.ctx.model.WalletBalances.findOne({
+      order: [[ 'id', 'DESC' ]],
+    });
+    return lastWallet ? lastWallet.balance : 0; // 确保这里使用的字段名是 'balance' 而不是 'balance_after'
   }
+
 }
 
 module.exports = WalletController;
