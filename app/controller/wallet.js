@@ -13,15 +13,16 @@ class WalletController extends Controller {
   }
 
   async generateUniqueId() {
-    const uniqueIDsKey = 'unique_transaction_ids';
+    const uniqueIDsCounterKey = 'unique_transaction_counter'; // 用于递增计数
+    const uniqueIDsSetKey = 'unique_ids_set'; // 新的键名用于存储唯一ID的集合
     let newId;
     let isUnique = 0;
 
     while (isUnique === 0) {
-      const randomPart = Math.random().toString(36).substring(2, 15);
+      const randomPart = await this.ctx.app.redis.incr(uniqueIDsCounterKey);
       const timestamp = Date.now().toString();
       newId = `${timestamp}-${randomPart}`;
-      isUnique = await this.ctx.app.redis.sadd(uniqueIDsKey, newId);
+      isUnique = await this.ctx.app.redis.sadd(uniqueIDsSetKey, newId);
     }
 
     return newId;
@@ -32,7 +33,6 @@ class WalletController extends Controller {
     const { type, balance } = this.ctx.request.body;
     try {
       const newId = await this.generateUniqueId();
-      console.log(newId);
       const balanceKey = 'wallet:balance';
       const transactionsKey = 'transactions';
 
