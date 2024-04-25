@@ -10,10 +10,14 @@ module.exports = {
     const transactions = [];
     let transactionJson;
 
-    // Pop transactions from a Redis list
-    console.log(`Starting batch processing. Initial queue size: ${await ctx.app.redis.llen('transactions')}`);
+    // Backup current transactions list before processing
+    const transactionsList = await ctx.app.redis.lrange('transactions', 0, -1);
+    if (transactionsList.length > 0) {
+      await ctx.app.redis.rpush('transactionsBackUp', ...transactionsList);
+    }
+
+    // Process and clear transactions
     while ((transactionJson = await ctx.app.redis.lpop('transactions'))) {
-      console.log(`Starting batch processing. Initial queue size: ${await ctx.app.redis.llen('transactions')}`);
       transactions.push(JSON.parse(transactionJson));
       if (transactions.length >= batchSize) {
         await ctx.model.Wallet.bulkCreate(transactions);
@@ -21,10 +25,10 @@ module.exports = {
         transactions.length = 0; // Clear the array after processing
       }
     }
+
     if (transactions.length > 0) {
       await ctx.model.Wallet.bulkCreate(transactions);
       console.log(`Processed remaining batch of ${transactions.length} transactions.`);
     }
-
   },
 };

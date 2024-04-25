@@ -36,7 +36,6 @@ class WalletController extends Controller {
       const balanceKey = 'wallet:balance';
       const transactionsKey = 'transactions';
 
-      // 更新餘額
       let updatedBalance;
       if (type === 'deposit') {
         updatedBalance = await this.ctx.app.redis.incrby(balanceKey, parseInt(balance));
@@ -44,7 +43,6 @@ class WalletController extends Controller {
         updatedBalance = await this.ctx.app.redis.decrby(balanceKey, parseInt(balance));
       }
 
-      // 構建交易數據
       const transactionData = {
         id: newId,
         type,

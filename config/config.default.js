@@ -8,12 +8,23 @@ module.exports = appInfo => {
 
   config.redis = {
     client: {
-      port: 6379, // Redis端口
-      host: '127.0.0.1', // Redis主機
-      password: '', // Redis密碼
-      db: 0, // 使用的數據庫索引
+      port: 6379, // Redis的端口號
+      host: '127.0.0.1', // Redis的主機地址
+      password: '', // Redis的密碼(如果有的話)
+      db: 0, // 使用的數據庫編號
     },
+    agent: true, // 是否啟用Agent
+    dumpPath: '/Users/angelpao/dump.rdb', // Redis的dump文件路徑
   };
+
+  // config.redis = {
+  //   client: {
+  //     port: 6379, // Redis端口
+  //     host: '127.0.0.1', // Redis主機
+  //     password: '', // Redis密碼
+  //     db: 0, // 使用的數據庫索引
+  //   },
+  // };
 
   // 数据库配置
   config.sequelize = {
