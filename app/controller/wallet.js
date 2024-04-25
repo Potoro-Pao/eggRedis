@@ -13,21 +13,12 @@ class WalletController extends Controller {
   }
 
   async generateUniqueId() {
-    const uniqueIDsCounterKey = 'unique_transaction_counter'; // 用于递增计数
-    const uniqueIDsSetKey = 'unique_ids_set'; // 新的键名用于存储唯一ID的集合
-    let newId;
-    let isUnique = 0;
-
-    while (isUnique === 0) {
-      const randomPart = await this.ctx.app.redis.incr(uniqueIDsCounterKey);
-      const timestamp = Date.now().toString();
-      newId = `${timestamp}-${randomPart}`;
-      isUnique = await this.ctx.app.redis.sadd(uniqueIDsSetKey, newId);
-    }
-
+    const uniqueIDsCounterKey = 'unique_transaction_counter';
+    const randomPart = await this.ctx.app.redis.incr(uniqueIDsCounterKey);
+    const timestamp = Date.now().toString();
+    const newId = `${timestamp}-${randomPart}`;
     return newId;
   }
-
 
   async create() {
     const { type, balance } = this.ctx.request.body;
