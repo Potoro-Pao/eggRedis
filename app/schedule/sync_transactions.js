@@ -31,8 +31,8 @@ module.exports = {
       await ctx.model.Wallet.bulkCreate(transactions); // Ensure this is the correct model name
       const backUpJson = await ctx.app.redis.get('balance:backUp');
       const parsedBackUpJson = await JSON.parse(backUpJson);
-      await ctx.model.WalletBalances.upsert(
-        { id: parsedBackUpJson.id, balance: parsedBackUpJson.balance },
+      await ctx.model.WalletBalances.update(
+        { balance: parsedBackUpJson.balance },
         { where: { id: 1 } }
       );
       console.log(`Processed remaining batch of ${transactions.length} transactions.`);
