@@ -15,6 +15,14 @@ module.exports = appInfo => {
     },
   };
 
+  config.cluster = {
+    listen: {
+      path: '',
+      port: 8080, // 更改此处的端口号
+      hostname: '127.0.0.1', // 可以设置为 '0.0.0.0' 来允许外部访问
+    },
+  };
+
   // 数据库配置
   config.sequelize = {
     dialect: 'mysql',

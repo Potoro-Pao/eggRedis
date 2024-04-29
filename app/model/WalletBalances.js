@@ -5,7 +5,7 @@ module.exports = app => {
     id: {
       type: INTEGER,
       primaryKey: true,
-      autoIncrement: true,
+      autoIncrement: false,
     },
     balance: {
       type: DECIMAL(10, 2),
