@@ -7,49 +7,28 @@ module.exports = {
   async task(ctx) {
     console.log('Running scheduled task to sync transactions.');
     const batchSize = 1000; // Define the maximum number of transactions per batch
-    let transactionJson;
-    let backUpJson;
+    const transactionsKey = 'transactions';
+    const backupTransactionsKey = 'backupTransactions';
 
-    // Backup current transactions list before processing
-    const transactionsList = await ctx.app.redis.lrange('transactions', 0, -1);
-    const backUpBalanceList = await ctx.app.redis.lrange('backUpBalances', 0, -1);
-    console.log(backUpBalanceList);
+    // Get the current length of the backup list
+    const currentBackupLength = await ctx.app.redis.get('cluster').llen(backupTransactionsKey);
 
-    // Backing up transactions
+    // Copy new data to backup if any new items exist
+    const newTransactions = await ctx.app.redis.get('cluster').lrange(transactionsKey, currentBackupLength, batchSize - 1);
+    if (newTransactions.length > 0) {
+      await ctx.app.redis.get('cluster').rpush(backupTransactionsKey, ...newTransactions);
+    }
+
+    // Process transactions from backup storage
+    const transactionsList = await ctx.app.redis.get('cluster').lrange(backupTransactionsKey, 0, -1);
     if (transactionsList.length > 0) {
-      await ctx.app.redis.rpush('transactionsBackUp', ...transactionsList);
-    }
-
-    // Clear and process transactions
-    const transactions = [];
-    while ((transactionJson = await ctx.app.redis.lpop('transactions'))) {
-      transactions.push(JSON.parse(transactionJson));
-      if (transactions.length >= batchSize) {
-        await ctx.model.Wallet.bulkCreate(transactions); // Assume the model name is Transaction
-        console.log(`Processed a batch of ${transactions.length} transactions.`);
-        transactions.length = 0; // Clear the array after processing
+      const transactions = transactionsList.map(JSON.parse);
+      for (const transaction of transactions) {
+        await ctx.model.Wallet.upsert(transaction, {
+          where: { unique_id: transaction.unique_id },
+        });
       }
-    }
-
-    if (transactions.length > 0) {
-      await ctx.model.Wallet.bulkCreate(transactions); // Ensure this is the correct model name
-      console.log(`Processed remaining batch of ${transactions.length} transactions.`);
-    }
-
-    // Process backup balances
-    const backUpBalances = [];
-    while ((backUpJson = await ctx.app.redis.lpop('backUpBalances'))) {
-      backUpBalances.push(JSON.parse(backUpJson));
-      if (backUpBalances.length >= batchSize) {
-        await ctx.model.WalletBalances.bulkCreate(backUpBalances);
-        console.log(`Processed a batch of ${backUpBalances.length} backup balances.`);
-        backUpBalances.length = 0; // Clear the array after processing
-      }
-    }
-
-    if (backUpBalances.length > 0) {
-      await ctx.model.WalletBalances.bulkCreate(backUpBalances);
-      console.log(`Processed remaining batch of ${backUpBalances.length} backup balances.`);
+      console.log(`Processed ${transactions.length} transactions.`);
     }
   },
 };

@@ -6,12 +6,36 @@ module.exports = appInfo => {
   // 应用密钥
   config.keys = appInfo.name + '_1712889937342_3151';
 
+  // 监听端口配置
+  config.cluster = {
+    listen: {
+      path: '',
+      port: 8080, // 更改此处的端口号
+      hostname: '0.0.0.0', // 可以设置为 '0.0.0.0' 来允许外部访问
+    },
+  };
+
+  // config/config.default.js
   config.redis = {
-    client: {
-      port: 6379, // Redis端口
-      host: '127.0.0.1', // Redis主機
-      password: '', // Redis密碼
-      db: 0, // 使用的數據庫索引
+    clients: {
+      redisSingle: { // For single instance use
+        port: 6379,
+        host: '127.0.0.1',
+        password: '',
+        db: 0,
+      },
+      cluster: { // For Redis Cluster use
+        cluster: true,
+        nodes: [
+          { port: 7000, host: '127.0.0.1' },
+          { port: 7001, host: '127.0.0.1' },
+          { port: 7002, host: '127.0.0.1' },
+        ],
+        redisOptions: {
+          password: '',
+          db: 0,
+        },
+      },
     },
   };
 

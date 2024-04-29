@@ -3,10 +3,6 @@ exports.sequelize = {
   enable: true,
   package: 'egg-sequelize',
 };
-exports.schedule = {
-  enable: true,
-  package: 'egg-schedule',
-};
 
 exports.nunjucks = {
   enable: true,
