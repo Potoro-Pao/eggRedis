@@ -23,7 +23,7 @@ class WalletController extends Controller {
       const newId = await this.generateUniqueId();
       const updatedBalance = await this.updateBalance(type, amount);
       await this.recordTransaction(newId, type, amount, updatedBalance);
-      await this.recordBalance(newId, updatedBalance);
+      await this.recordBalance(updatedBalance);
       this.ctx.body = { success: true, transactionId: newId };
     } catch (error) {
       console.error('Transaction failed', error);
@@ -52,10 +52,9 @@ class WalletController extends Controller {
     await this.ctx.app.redis.rpush(transactionsKey, JSON.stringify(transactionData));
   }
 
-  async recordBalance(id, balance) {
+  async recordBalance(balance) {
     const balanceBackUpKey = 'balance:backUp';
     const balanceData = {
-      id,
       balance,
     };
     await this.ctx.app.redis.set(balanceBackUpKey, JSON.stringify(balanceData));

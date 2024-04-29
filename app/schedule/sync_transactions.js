@@ -33,7 +33,7 @@ module.exports = {
       const parsedBackUpJson = await JSON.parse(backUpJson);
       await ctx.model.WalletBalances.upsert(
         { id: parsedBackUpJson.id, balance: parsedBackUpJson.balance },
-        { where: {} }
+        { where: { id: 1 } }
       );
       console.log(`Processed remaining batch of ${transactions.length} transactions.`);
     }
