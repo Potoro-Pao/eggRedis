@@ -67,7 +67,7 @@ class WalletController extends Controller {
   async getTotal() {
     const balanceKey = 'balance:backUp';
     const updatedBalance = await this.ctx.app.redis.get(balanceKey) || 0;
-    return JSON.parse(updatedBalance).balance;
+    return JSON.parse(updatedBalance).balance || 0;
   }
 }
 
