@@ -29,16 +29,15 @@ module.exports = {
 
     if (transactions.length > 0) {
       await ctx.model.Wallet.bulkCreate(transactions); // Ensure this is the correct model name
-      const backUpJson = await ctx.app.redis.get('balance:backUp');
-      const parsedBackUpJson = await JSON.parse(backUpJson);
+      const lastBalance = await ctx.app.redis.get('wallet:balance');
       const hasData = await ctx.model.WalletBalances.count();
       if (hasData) {
         await ctx.model.WalletBalances.update(
-          { balance: parsedBackUpJson.balance },
+          { balance: lastBalance },
           { where: { id: 1 } }
         );
       } else {
-        await ctx.model.WalletBalances.upsert({ balance: parsedBackUpJson.balance });
+        await ctx.model.WalletBalances.upsert({ balance: lastBalance });
       }
       console.log(`Processed remaining batch of ${transactions.length} transactions.`);
     }
