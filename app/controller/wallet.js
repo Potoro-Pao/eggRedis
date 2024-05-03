@@ -28,8 +28,6 @@ class WalletController extends Controller {
         multi.incrby(balanceKey, parseInt(amount));
       } else {
         multi.decrby(balanceKey, parseInt(amount));
-        const a = multi.get(balanceKey);
-        console.log(a);
       }
       let updatedBalance;
       const [ successPerformMulti ] = await multi.exec();
@@ -37,9 +35,6 @@ class WalletController extends Controller {
       const calculatedBalance = successPerformMulti[1];
       if (successPerformed === null && calculatedBalance) {
         if (calculatedBalance <= 0) {
-          const result = calculatedBalance;
-          const lastTransactionBalance = result + amount;
-          console.log('backMoney', lastTransactionBalance);
           await this.ctx.app.redis.incrby(balanceKey, parseInt(amount));
           updatedBalance = await this.ctx.app.redis.get(balanceKey);
           throw Error('餘額不夠');
@@ -47,9 +42,6 @@ class WalletController extends Controller {
           updatedBalance = calculatedBalance;
         }
       }
-
-      console.log('lsdjflsdjfsldjkf', successPerformMulti, updatedBalance);
-
 
       const transactionsKey = 'transactions';
       const transactionData = {
