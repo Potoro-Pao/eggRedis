@@ -3,8 +3,8 @@ const Controller = require('egg').Controller;
 class WalletController extends Controller {
   async index() {
     try {
-      const count = await this.getCount();
-      const balance = await this.getTotal();
+      const count = await this.ctx.model.Wallet.count();
+      const balance = await this.ctx.app.redis.get('wallet:balance') || 0;
       const wallets = await this.ctx.service.wallet.listAll();
       await this.ctx.render('wallets.html', { wallets, count, balance });
     } catch (error) {
@@ -12,15 +12,11 @@ class WalletController extends Controller {
     }
   }
 
-  async generateUniqueId() {
-    const uniqueIDsCounterKey = 'unique_transaction_counter';
-    return await this.ctx.app.redis.incr(uniqueIDsCounterKey);
-  }
-
   async create() {
+    const uniqueIDsCounterKey = 'unique_transaction_counter';
     const { type, amount } = this.ctx.request.body;
     try {
-      const newId = await this.generateUniqueId();
+      const newId = await this.ctx.app.redis.incr(uniqueIDsCounterKey);
       const balanceKey = 'wallet:balance';
       this.ctx.app.redis.watch(balanceKey);
       const multi = this.ctx.app.redis.multi();
@@ -57,15 +53,6 @@ class WalletController extends Controller {
       console.error('Transaction failed', error);
       this.ctx.body = { success: false, error: error.message };
     }
-  }
-
-  async getCount() {
-    return this.ctx.model.Wallet.count();
-  }
-
-  async getTotal() {
-    // const updatedBalance = await this.ctx.app.redis.get('wallet:balance') || 0;
-    return await this.ctx.app.redis.get('wallet:balance') || 0;
   }
 }
 
