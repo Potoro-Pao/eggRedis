@@ -12,7 +12,6 @@ class WalletController extends Controller {
     }
   }
 
-
   async create() {
     const uniqueIDsCounterKey = 'unique_transaction_counter';
     const { type, amount } = this.ctx.request.body;
@@ -28,9 +27,9 @@ class WalletController extends Controller {
       }
       let updatedBalance;
       const [ successPerformMulti ] = await multi.exec();
-      const successPerformed = successPerformMulti[0];
+      const successPerformed = successPerformMulti[0] === null;
       const calculatedBalance = successPerformMulti[1];
-      if (successPerformed === null && calculatedBalance) {
+      if (successPerformed) {
         if (calculatedBalance < 0) {
           await this.ctx.app.redis.incrby(balanceKey, parseInt(amount));
           updatedBalance = await this.ctx.app.redis.get(balanceKey);
