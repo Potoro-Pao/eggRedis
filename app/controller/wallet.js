@@ -21,21 +21,36 @@ class WalletController extends Controller {
     const { type, amount } = this.ctx.request.body;
     try {
       const newId = await this.generateUniqueId();
-      // const updatedBalance = await this.updateBalance(type, amount);
       const balanceKey = 'wallet:balance';
-      let updatedBalance;
       this.ctx.app.redis.watch(balanceKey);
       const multi = this.ctx.app.redis.multi();
       if (type === 'deposit') {
-        updatedBalance = await this.ctx.app.redis.incrby(balanceKey, parseInt(amount));
+        multi.incrby(balanceKey, parseInt(amount));
       } else {
-        const tempBalance = await this.ctx.app.redis.get(balanceKey);
-        if ((tempBalance - amount) < 0) {
-          throw Error;
-        }
-        updatedBalance = await this.ctx.app.redis.decrby(balanceKey, parseInt(amount));
+        multi.decrby(balanceKey, parseInt(amount));
+        const a = multi.get(balanceKey);
+        console.log(a);
       }
-      await multi.exec();
+      let updatedBalance;
+      const [ successPerformMulti ] = await multi.exec();
+      const successPerformed = successPerformMulti[0];
+      const calculatedBalance = successPerformMulti[1];
+      if (successPerformed === null && calculatedBalance) {
+        if (calculatedBalance <= 0) {
+          const result = calculatedBalance;
+          const lastTransactionBalance = result + amount;
+          console.log('backMoney', lastTransactionBalance);
+          await this.ctx.app.redis.incrby(balanceKey, parseInt(amount));
+          updatedBalance = await this.ctx.app.redis.get(balanceKey);
+          throw Error('餘額不夠');
+        } else {
+          updatedBalance = calculatedBalance;
+        }
+      }
+
+      console.log('lsdjflsdjfsldjkf', successPerformMulti, updatedBalance);
+
+
       const transactionsKey = 'transactions';
       const transactionData = {
         id: newId,

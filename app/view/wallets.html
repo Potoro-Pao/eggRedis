@@ -29,11 +29,16 @@
 
   <br>
   <input type="number" id="increaseAmount" placeholder="Money to Deposit" min="0">
+
 <button onclick="updateWallet('deposit')" style="margin-bottom: 30px;">Deposit</button>
+<button onclick="simulateDeposit()" style="margin-bottom: 30px;">simulateDeposit</button>
+
 <br>
 <input type="number" id="decreaseAmount" placeholder="Money to Withdraw" min="0">
 <button onclick="updateWallet('withdraw')" style="margin-bottom: 30px;">Withdraw</button>
-<button onclick="simulatePost()" style="margin-bottom: 30px;">simulatePost1200</button>
+<button onclick="simulateWithdraw()" style="margin-bottom: 30px;">simulateWithdraw</button>
+<button onclick="simualteRandom()" style="margin-bottom: 30px;">simualteRandom</button>
+
 
   <br>
   <table>
@@ -60,23 +65,31 @@
 
     this.formateForm();
 
-    function simulatePost(){
-      for (let i = 0 ; i < 1200; i ++){
+    function simualteRandom(){
+        for (let i = 0 ; i < 1200; i ++){
+        const count = Math.floor(Math.random()* 10)
+        if (count % 2 === 0){
+          updateWallet('deposit')
+        } else{
+          updateWallet('withdraw')
+        }
+      }
+    }
+
+    function simulateWithdraw(){
+      for (let i = 0 ; i < 1300; i ++){
         updateWallet('withdraw')
       }
-      // for (let i = 0 ; i < 500; i ++){
-      //   const amount = Math.floor(Math.random()* 10)
-      //   if (amount % 2 === 0){
-      //     updateWallet('deposit')
-      //   } else{
-      //     updateWallet('withdraw')
-      //   }
-      // }
+    }
+
+    function simulateDeposit(){
+      for (let i = 0 ; i < 1300; i ++){
+        updateWallet('deposit')
+      }
     }
     function updateWallet(status) {
   const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount';
-
-  const amount = 1; //  document.getElementById(id).value;
+  const amount = document.getElementById(id).value;
 
   if (!amount || parseFloat(amount) <= 0) {
     alert("The amount has to be at least 1 dollar!");

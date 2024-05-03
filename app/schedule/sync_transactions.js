@@ -25,6 +25,18 @@ module.exports = {
         console.log(`Processed a batch of ${transactions.length} transactions.`);
         transactions.length = 0; // Clear the array after processing
       }
+      if (transactions.length === 0) {
+        const lastBalance = await ctx.app.redis.get('wallet:balance');
+        const hasData = await ctx.model.WalletBalances.count();
+        if (hasData) {
+          await ctx.model.WalletBalances.update(
+            { balance: lastBalance },
+            { where: { id: 1 } }
+          );
+        } else {
+          await ctx.model.WalletBalances.upsert({ balance: lastBalance });
+        }
+      }
     }
 
     if (transactions.length > 0) {
