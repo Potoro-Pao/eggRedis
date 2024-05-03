@@ -12,6 +12,7 @@ class WalletController extends Controller {
     }
   }
 
+
   async create() {
     const uniqueIDsCounterKey = 'unique_transaction_counter';
     const { type, amount } = this.ctx.request.body;
@@ -30,7 +31,7 @@ class WalletController extends Controller {
       const successPerformed = successPerformMulti[0];
       const calculatedBalance = successPerformMulti[1];
       if (successPerformed === null && calculatedBalance) {
-        if (calculatedBalance <= 0) {
+        if (calculatedBalance < 0) {
           await this.ctx.app.redis.incrby(balanceKey, parseInt(amount));
           updatedBalance = await this.ctx.app.redis.get(balanceKey);
           throw Error('餘額不夠');
