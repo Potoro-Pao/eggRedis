@@ -15,39 +15,36 @@ class WalletController extends Controller {
   async create() {
     const uniqueIDsCounterKey = 'unique_transaction_counter';
     const { type, amount } = this.ctx.request.body;
+    const balanceKey = 'wallet:balance';
+    const transactionsKey = 'transactions';
     try {
       const newId = await this.ctx.app.redis.incr(uniqueIDsCounterKey);
-      const balanceKey = 'wallet:balance';
-      this.ctx.app.redis.watch(balanceKey);
       const multi = this.ctx.app.redis.multi();
       if (type === 'deposit') {
-        multi.incrby(balanceKey, parseInt(amount));
+        multi.get(balanceKey).set('currentAmount', amount).get('currentAmount')
+          .incrby(balanceKey, amount);
       } else {
-        multi.decrby(balanceKey, parseInt(amount));
-      }
-      let updatedBalance;
-      const [ successPerformMulti ] = await multi.exec();
-      const successPerformed = successPerformMulti[0] === null;
-      const calculatedBalance = successPerformMulti[1];
-      if (successPerformed) {
-        if (calculatedBalance < 0) {
-          await this.ctx.app.redis.incrby(balanceKey, parseInt(amount));
-          updatedBalance = await this.ctx.app.redis.get(balanceKey);
-          throw Error('餘額不夠');
-        } else {
-          updatedBalance = calculatedBalance;
-        }
+        multi.get(balanceKey).set('currentAmount', amount).get('currentAmount')
+          .decrby(balanceKey, amount);
       }
 
-      const transactionsKey = 'transactions';
-      const transactionData = {
-        id: newId,
-        type,
-        balance: parseInt(amount),
-        balance_after: updatedBalance,
-        create_at: new Date().toISOString(),
-      };
-      await this.ctx.app.redis.rpush(transactionsKey, JSON.stringify(transactionData));
+      await multi.exec(async (err, res) => {
+        const fixedAmount = parseInt(res[2][1]);
+        let currentBalance = parseInt(res[3][1]);
+        if (currentBalance < 0) {
+          currentBalance = await this.app.redis.incrby(balanceKey, fixedAmount);
+        } else {
+          const transactionData = {
+            id: newId,
+            type,
+            balance: fixedAmount,
+            balance_after: currentBalance,
+            create_at: new Date().toISOString(),
+          };
+          this.ctx.app.redis.rpush(transactionsKey, JSON.stringify(transactionData));
+        }
+      });
+
       this.ctx.body = { success: true, transactionId: newId };
     } catch (error) {
       console.error('Transaction failed', error);
