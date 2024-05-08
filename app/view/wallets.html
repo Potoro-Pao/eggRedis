@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Wallet List</title>
   <style>
@@ -7,19 +8,23 @@
       width: 100%;
       border-collapse: collapse;
     }
-    th, td {
+
+    th,
+    td {
       border: 1px solid #ddd;
       padding: 8px;
       text-align: left;
     }
+
     th {
       background-color: #f2f2f2;
     }
   </style>
   <!-- 在HTML头部加入以下标签，例如每5分钟刷新一次 -->
-<meta http-equiv="refresh" content="300">
+  <meta http-equiv="refresh" content="300">
 
 </head>
+
 <body>
   <input type="hidden" id="csrfToken" value="{{ ctx.csrf }}">
 
@@ -30,14 +35,14 @@
   <br>
   <input type="number" id="increaseAmount" placeholder="Money to Deposit" min="0">
 
-<button onclick="updateWallet('deposit')" style="margin-bottom: 30px;">Deposit</button>
-<button onclick="simulateDeposit()" style="margin-bottom: 30px;">simulateDeposit</button>
+  <button onclick="updateWallet('deposit')" style="margin-bottom: 30px;">Deposit</button>
+  <button onclick="simulateDeposit()" style="margin-bottom: 30px;">simulateDeposit</button>
 
-<br>
-<input type="number" id="decreaseAmount" placeholder="Money to Withdraw" min="0">
-<button onclick="updateWallet('withdraw')" style="margin-bottom: 30px;">Withdraw</button>
-<button onclick="simulateWithdraw()" style="margin-bottom: 30px;">simulateWithdraw</button>
-<button onclick="simualteRandom()" style="margin-bottom: 30px;">simualteRandom</button>
+  <br>
+  <input type="number" id="decreaseAmount" placeholder="Money to Withdraw" min="0">
+  <button onclick="updateWallet('withdraw')" style="margin-bottom: 30px;">Withdraw</button>
+  <button onclick="simulateWithdraw()" style="margin-bottom: 30px;">simulateWithdraw</button>
+  <button onclick="simualteRandom()" style="margin-bottom: 30px;">simualteRandom</button>
 
 
   <br>
@@ -52,12 +57,12 @@
     </thead>
     <tbody class="data">
       {% for wallet in wallets %}
-        <tr>
-          <td class="date">{{wallet.created_at}}</td>
-          <td class ="money">{{ wallet.balance }}</td>
-          <td class="checkStatus">{{ wallet.type }}</td>
-          <td class="checkStatus">{{ wallet.balance_after }}</td>
-        </tr>
+      <tr>
+        <td class="date">{{wallet.created_at}}</td>
+        <td class="money">{{ wallet.balance }}</td>
+        <td class="checkStatus">{{ wallet.type }}</td>
+        <td class="checkStatus">{{ wallet.balance_after }}</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
@@ -65,88 +70,89 @@
 
     this.formateForm();
 
-    function simualteRandom(){
-        for (let i = 0 ; i < 10; i ++){
-        const count = Math.floor(Math.random()* 30)
-        if (count % 2 === 0){
+    function simualteRandom() {
+      for (let i = 0; i < 10; i++) {
+        const count = Math.floor(Math.random() * 30)
+        if (count % 2 === 0) {
           updateWallet('deposit')
-        } else{
+        } else {
           updateWallet('withdraw')
         }
       }
     }
 
-    function simulateWithdraw(){
-      for (let i = 0 ; i < 100; i ++){
+    function simulateWithdraw() {
+      for (let i = 0; i < 100; i++) {
         updateWallet('withdraw')
       }
     }
 
-    function simulateDeposit(){
-      for (let i = 0 ; i < 100; i ++){
+    function simulateDeposit() {
+      for (let i = 0; i < 100; i++) {
         updateWallet('deposit')
       }
     }
 
 
 
- function updateWallet(status) {
-  const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount';
-  const amount = document.getElementById(id).value;
+    function updateWallet(status) {
+      const id = status === 'deposit' ? 'increaseAmount' : 'decreaseAmount';
+      const amount = document.getElementById(id).value;
 
-  if (!amount || parseFloat(amount) <= 0) {
-    alert("The amount has to be at least 1 dollar!");
-    return;
-  }
+      if (!amount || parseFloat(amount) <= 0) {
+        alert("The amount has to be at least 1 dollar!");
+        return;
+      }
 
-  const csrfToken = document.getElementById('csrfToken').value;
-  const transactionData = { type: status, amount: parseInt(amount) };
-  const transactionEndpoint = '/wallets';
+      const csrfToken = document.getElementById('csrfToken').value;
+      const transactionData = { type: status, amount: parseInt(amount) };
+      const transactionEndpoint = '/wallets';
 
-  fetch(transactionEndpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-csrf-token': csrfToken
-    },
-    body: JSON.stringify(transactionData)
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      console.log('Transaction created successfully');
-    } else {
-      console.error('Error creating transaction:', data.error);
-      alert('Error creating transaction: ' + data.error);
+      fetch(transactionEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken
+        },
+        body: JSON.stringify(transactionData)
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log('Transaction created successfully');
+          } else {
+            console.error('Error creating transaction:', data.error);
+            alert('Error creating transaction: ' + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error creating transaction:', error);
+          alert('Error creating transaction: ' + error.message);
+        });
     }
-  })
-  .catch(error => {
-    console.error('Error creating transaction:', error);
-    alert('Error creating transaction: ' + error.message);
-  });
-}
 
-function formateForm (){
-      document.addEventListener("DOMContentLoaded", function() {
-  //格式化日期
-  // document.querySelectorAll('.date').forEach(function(el) {
-  //   const rawDate = el.textContent;
-  //   const date = new Date(rawDate);
-  //   el.textContent = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
-  // });
+    function formateForm() {
+      document.addEventListener("DOMContentLoaded", function () {
+        //格式化日期
+        // document.querySelectorAll('.date').forEach(function(el) {
+        //   const rawDate = el.textContent;
+        //   const date = new Date(rawDate);
+        //   el.textContent = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+        // });
 
-  document.querySelectorAll('tr').forEach(function(row){
-    const status = row.querySelector('.checkStatus');
-    const money = row.querySelector('.money');
-    const date = row.querySelector('.date');
-    if (money){
-      money.style.color = status.textContent === 'deposit' ? 'green' : 'red';
-    }
-  })
+        document.querySelectorAll('tr').forEach(function (row) {
+          const status = row.querySelector('.checkStatus');
+          const money = row.querySelector('.money');
+          const date = row.querySelector('.date');
+          if (money) {
+            money.style.color = status.textContent === 'deposit' ? 'green' : 'red';
+          }
+        })
 
-});
+      });
     }
 
   </script>
 </body>
+
 </html>
